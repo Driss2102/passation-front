@@ -31,7 +31,7 @@ export default function CommentairesSection({ passationId }) {
     setCommentaires(prev => [optimistic, ...prev])
     setContenu('')
     try {
-      const res = await commentaireService.create({ passationId, contenu })
+      const res = await commentaireService.create(passationId, { contenu })
       setCommentaires(prev =>
         prev.map(c => c.id === optimistic.id ? res.data : c)
       )
