@@ -49,7 +49,7 @@ export default function TimelinePage() {
     e.preventDefault()
     setSaving(true)
     try {
-      await timelineService.addEtape({ ...form, passationId: selectedPassation })
+      await timelineService.addEtape(selectedPassation, form)
       const res = await timelineService.getByPassation(selectedPassation)
       setEtapes(Array.isArray(res.data) ? res.data : [])
       setForm({ titre: '', description: '', datePrevu: '', statut: 'A_FAIRE' })
@@ -81,7 +81,7 @@ export default function TimelinePage() {
         >
           {passations.map(p => (
             <option key={p.id} value={p.id}>
-              {p.partant?.prenom || ''} {p.partant?.nom || p.nomEmploye || `Passation ${p.id}`}
+              {p.employePartant?.prenom || ''} {p.employePartant?.nom || `Passation ${p.id}`}
             </option>
           ))}
         </select>
