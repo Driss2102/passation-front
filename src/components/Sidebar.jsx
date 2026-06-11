@@ -1,23 +1,43 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
-const allLinks = [
-  { to: '/dashboard', icon: '&#127968;', label: 'Tableau de bord', roles: null },
-  { to: '/passations', icon: '&#128196;', label: 'Passations', roles: null },
-  { to: '/alertes', icon: '&#128276;', label: 'Alertes', roles: null },
-  { to: '/analytics', icon: '&#128202;', label: 'Analytiques', roles: ['MANAGER_RH', 'ADMIN'] },
-  { to: '/admin/users', icon: '&#128101;', label: 'Gestion Utilisateurs', roles: ['ADMIN'] },
-  { to: '/admin/checklists', icon: '&#9989;', label: 'Checklists', roles: ['ADMIN'] },
+const sections = [
+  {
+    label: 'Principal',
+    links: [
+      { to: '/dashboard', icon: '⊞', label: 'Tableau de bord', roles: null },
+      { to: '/passations', icon: '↔', label: 'Passations',      roles: null },
+      { to: '/alertes',   icon: '◉', label: 'Alertes',          roles: null },
+    ],
+  },
+  {
+    label: 'Rapports',
+    links: [
+      { to: '/analytics', icon: '▦', label: 'Analytiques', roles: ['MANAGER_RH', 'ADMIN'] },
+    ],
+  },
+  {
+    label: 'Administration',
+    links: [
+      { to: '/admin/users',      icon: '◎', label: 'Utilisateurs', roles: ['ADMIN'] },
+      { to: '/admin/checklists', icon: '☑', label: 'Checklists',   roles: ['ADMIN'] },
+    ],
+  },
 ]
+
+const roleLabel = {
+  ADMIN:      'Administrateur',
+  MANAGER_RH: 'Manager RH',
+  EMPLOYE:    'Employé',
+  REMPLACANT: 'Remplaçant',
+}
 
 export default function Sidebar({ isOpen, onClose }) {
   const { user } = useAuth()
   const role = user?.role || ''
 
-  const visibleLinks = allLinks.filter((link) => {
-    if (!link.roles) return true
-    return link.roles.includes(role)
-  })
+  const initial = (user?.prenom || user?.nom || 'U')[0].toUpperCase()
+  const displayName = `${user?.prenom || ''} ${user?.nom || ''}`.trim() || user?.email || 'Utilisateur'
 
   return (
     <>
@@ -26,32 +46,59 @@ export default function Sidebar({ isOpen, onClose }) {
         onClick={onClose}
       />
       <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
+
+        {/* Header / Brand */}
         <div className="sidebar-header">
-          <span className="sidebar-logo">PassationApp</span>
-          <button className="sidebar-close" onClick={onClose} aria-label="Fermer sidebar">
-            &times;
-          </button>
+          <div className="sidebar-brand">
+            <div className="sidebar-brand-icon">📋</div>
+            <div>
+              <div className="sidebar-brand-name">Passation</div>
+              <span className="sidebar-brand-tag">Gestion des transitions</span>
+            </div>
+          </div>
+          <button className="sidebar-close" onClick={onClose} aria-label="Fermer">✕</button>
         </div>
 
+        {/* Navigation */}
         <nav className="sidebar-nav">
-          <div className="sidebar-section-title">Navigation</div>
-          {visibleLinks.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              className={({ isActive }) =>
-                `sidebar-link${isActive ? ' active' : ''}`
-              }
-              onClick={onClose}
-            >
-              <span
-                className="link-icon"
-                dangerouslySetInnerHTML={{ __html: link.icon }}
-              />
-              {link.label}
-            </NavLink>
-          ))}
+          {sections.map((section) => {
+            const visibleLinks = section.links.filter(
+              (l) => !l.roles || l.roles.includes(role)
+            )
+            if (!visibleLinks.length) return null
+
+            return (
+              <div key={section.label} className="sidebar-section">
+                <div className="sidebar-section-label">{section.label}</div>
+                {visibleLinks.map((link) => (
+                  <NavLink
+                    key={link.to}
+                    to={link.to}
+                    className={({ isActive }) =>
+                      `sidebar-link${isActive ? ' active' : ''}`
+                    }
+                    onClick={onClose}
+                  >
+                    <span className="link-icon">{link.icon}</span>
+                    {link.label}
+                  </NavLink>
+                ))}
+              </div>
+            )
+          })}
         </nav>
+
+        {/* Footer / User */}
+        <div className="sidebar-footer">
+          <div className="sidebar-user">
+            <div className="sidebar-avatar">{initial}</div>
+            <div style={{ minWidth: 0 }}>
+              <div className="sidebar-user-name truncate">{displayName}</div>
+              <div className="sidebar-user-role">{roleLabel[role] || role}</div>
+            </div>
+          </div>
+        </div>
+
       </aside>
     </>
   )
